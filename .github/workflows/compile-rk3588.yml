@@ -6,14 +6,15 @@ name: Compile rockchip rk3588 kernel (fixed)
 
 on:
   repository_dispatch:
-  workflow_dispatch:  # 直接触发，无输入选择
+  workflow_dispatch:  # 直接触发，无需输入参数
 
 env:
   TZ: Etc/UTC
 
 jobs:
   build:
-    runs-on: ubuntu-22.04-arm
+    runs-on: ubuntu-22.04  # 使用官方支持的x86_64环境
+    # 移除所有者ID校验，允许有权限的用户触发
 
     steps:
       - name: Checkout
@@ -72,27 +73,28 @@ jobs:
           echo "status=success" >> ${GITHUB_OUTPUT}
 
       - name: Compile the kernel [6.1.y]
+        id: compile_kernel  # 定义步骤ID，用于后续判断状态
         uses: ophub/amlogic-s9xxx-armbian@main
         if: ${{ steps.mapped.outputs.status }} == 'success' && !cancelled()
         with:
           build_target: kernel
           kernel_source: "armbian/linux-rockchip@rk-6.1-rkr5.1"  # 固定armbian 6.1源码
-          kernel_version: "6.1.y"  # 固定6.1版本
-          kernel_auto: true  # 自动使用最新内核
-          delete_source: true  # 编译后删除源码
-          kernel_package: "all"  # 编译所有包
-          kernel_toolchain: "gcc"  # 固定gcc工具链
-          kernel_sign: "-rk3588-ophub"  # 固定签名
-          kernel_config: "kernel-config/release/rk3588"  # 固定配置路径
-          compress_format: "xz"  # 固定xz压缩
-          silent_log: true  # 静默日志
+          kernel_version: "6.1.y"  # 固定内核版本
+          kernel_auto: true
+          delete_source: true
+          kernel_package: "all"
+          kernel_toolchain: "gcc"  # 固定工具链
+          kernel_sign: "-rk3588-ophub"
+          kernel_config: "kernel-config/release/rk3588"
+          compress_format: "xz"  # 固定压缩格式
+          silent_log: true
 
       - name: Upload Kernel to Release
         uses: ncipollo/release-action@main
-        if: ${{ env.PACKAGED_STATUS }} == 'success' && !cancelled()
+        if: ${{ steps.compile_kernel.conclusion == 'success' && !cancelled() }}  # 依赖编译步骤成功状态
         with:
           tag: kernel_rk3588
-          artifacts: ${{ env.PACKAGED_OUTPUTPATH }}/*
+          artifacts: /builder/output/*  # 直接使用实际输出路径
           allowUpdates: true
           token: ${{ secrets.GITHUB_TOKEN }}
           body: |
