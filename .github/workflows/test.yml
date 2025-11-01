@@ -1,0 +1,8 @@
+name: Test Workflow
+on: workflow_dispatch
+jobs:
+  test:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Test step
+        run: echo "Workflow triggered successfully!"
