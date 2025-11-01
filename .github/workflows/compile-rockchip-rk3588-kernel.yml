@@ -88,14 +88,6 @@ on:
           - -autumn-harvesting
           - -winter-storing
           - -yourname
-      kernel_config:
-        description: "Set the path of kernel .config"
-        required: false
-        default: "kernel-config/release/rk3588"
-        type: choice
-        options:
-          - kernel-config/release/rk3588
-          - false
 
 env:
   TZ: Etc/UTC
@@ -174,7 +166,7 @@ jobs:
           kernel_package: ${{ inputs.kernel_package }}
           kernel_toolchain: ${{ inputs.kernel_toolchain }}
           kernel_sign: ${{ inputs.kernel_sign }}
-          kernel_config: ${{ inputs.kernel_config }}
+          kernel_config: "kernel-config/release/rk3588/config-6.1"
           compress_format: ${{ inputs.compress_format }}
           silent_log: ${{ inputs.silent_log }}
 
